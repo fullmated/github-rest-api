@@ -15,7 +15,17 @@ for (let i = 0; i < 5; i++) {
     const encodedContent = Buffer.from(content).toString('base64');
     const path = `test${i}.txt`;
 
-    await octokit.request(`PUT /repos/${owner}/${repo}/contents/${path}`, {
+    const getRes = await octokit.request(`GET /repos/${owner}/${repo}/contents/${path}`, {
+        owner: owner,
+        repo: repo,
+        path: path,
+        branch: branch,
+        headers: {
+            'X-GitHub-Api-Version': '2022-11-28'
+        }
+    })
+
+    const putReq = {
         owner: owner,
         repo: repo,
         path: path,
@@ -29,5 +39,11 @@ for (let i = 0; i < 5; i++) {
         headers: {
             'X-GitHub-Api-Version': '2022-11-28'
         }
-    })
+    }
+    if (getRes.status === 200) {
+        console.log(`${path} exists`);
+        putReq.sha = getRes.data.sha;
+    }
+
+    await octokit.request(`PUT /repos/${owner}/${repo}/contents/${path}`, putReq);
 }
